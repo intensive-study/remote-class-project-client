@@ -1,0 +1,9 @@
+.theme--light {
+  --code-bg: #f5f2f0;
+  --bg-color: var(--light-bg);
+  --text-shadow: var(--light-bg-light-shadow);
+  --menu-text-color: var(--g-text-color-light);
+  --menu-text-hover-color: var(--primary-dark);
+  --text-secondary: var(--g-text-color-disabled-light);
+  --box-shadow-inset-small: inset -1px -1px 1px var(--light-bg-light-shadow),inset 1px 1px 1px var(--light-bg-dark-shadow);
+}

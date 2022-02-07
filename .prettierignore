@@ -1,0 +1,9 @@
+.next
+src/static
+*.d.ts
+*.json
+.dockerignore
+.eslintrc.js
+.gitignore
+*.yml
+Dockerfile
