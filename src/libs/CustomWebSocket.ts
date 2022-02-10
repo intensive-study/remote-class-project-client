@@ -1,33 +1,29 @@
-export class CustomWebSocket {
+export interface MessageBase {
+  type: string;
+  userId: number;
+  lectureId: number;
+}
+
+export default class CustomWebSocket {
 
   private ws: WebSocket;
-  private messageEvents: Map<string, Array<(message: any) => void>> = new Map<string, Array<(message: any) => void>>();
-  private handleOpen?: () => void;
-  private handleClose?: () => void;
+  private messageEvents: Map<string, Array<(message: any | MessageBase) => void>> = new Map<string, Array<(message: any | MessageBase) => void>>();
+  private handleMessage?: (message: any | MessageBase) => void;
+  private handleSend?: (message: any | MessageBase) => void;
 
-  constructor(url: string) {
+  constructor(
+    url: string,
+    handleOpen?: (this: WebSocket, ev: Event) => any,
+    handleClose?: (this: WebSocket, ev: CloseEvent) => any,
+  ) {
     this.ws = new WebSocket(url);
-    this.ws.onopen = this.onOpen;
-    this.ws.onclose = this.onClose;
+    this.ws.onopen = handleOpen || null;
+    this.ws.onclose = handleClose || null;
     this.ws.onmessage = this.onMessage;
   }
 
-  /**
-   * 소켓 Open 이벤트 설정
-   *
-   * @param event
-   */
-  setOnOpen(event?: () => void) {
-    this.handleOpen = event;
-  }
-
-  /**
-   * 소켓 Close 이벤트 설정
-   *
-   * @param event
-   */
-  setOnClose(event?: () => void) {
-    this.handleClose = event;
+  close() {
+    this.ws.close();
   }
 
   /**
@@ -37,10 +33,22 @@ export class CustomWebSocket {
    * @param event
    */
   addMessageEvent<T>(type: string, event: (message: T) => void) {
-    if(!this.messageEvents.has(type)) {
+    if (!this.messageEvents.has(type)) {
       this.messageEvents.set(type, []);
     }
     this.messageEvents.get(type)?.push(event);
+  }
+
+  setOnMessage(
+    handleMessage: (ev: any | MessageBase) => any,
+  ) {
+    this.handleMessage = handleMessage;
+  }
+
+  setOnSend(
+    handleSend: (ev: any | MessageBase) => any,
+  ) {
+    this.handleSend = handleSend;
   }
 
   /**
@@ -52,18 +60,12 @@ export class CustomWebSocket {
   public send(type: string, data: any) {
     data['type'] = type;
     const jsonData = JSON.stringify(data);
+    this.handleSend?.call(this, data);
     this.ws.send(jsonData);
   }
 
-  private onOpen() {
-    this.handleOpen?.call(this);
-  }
-
-  private onClose() {
-    this.handleClose?.call(this);
-  }
-
   private onMessage(message: MessageEvent) {
+    this.handleMessage?.call(this, message.data);
     if (typeof message.data.type === 'undefined') {
       console.error('메세지 타입을 알 수 없습니다.');
     }
