@@ -19,7 +19,7 @@ export default class CustomWebSocket {
     this.ws = new WebSocket(url);
     this.ws.onopen = handleOpen || null;
     this.ws.onclose = handleClose || null;
-    this.ws.onmessage = this.onMessage;
+    this.ws.onmessage = this.onMessage.bind(this);
   }
 
   close() {
@@ -65,13 +65,16 @@ export default class CustomWebSocket {
   }
 
   private onMessage(message: MessageEvent) {
-    this.handleMessage?.call(this, message.data);
-    if (typeof message.data.type === 'undefined') {
+    const data = typeof message.data === 'string' ? JSON.parse(message.data) : message.data;
+
+    this.handleMessage?.call(this, data);
+    if (typeof data.type === 'undefined') {
       console.error('메세지 타입을 알 수 없습니다.');
+      return;
     }
-    const type: string = message.data.type;
+    const type: string = data.type;
     this.messageEvents.get(type.toLowerCase())?.forEach((event) => {
-      event.call(this, message.data);
+      event.call(this, data);
     });
   }
 
