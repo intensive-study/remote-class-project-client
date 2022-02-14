@@ -1,3 +1,7 @@
+export interface ResponseBase {
+  status: number;
+}
+
 export interface MessageBase {
   type: string;
   userId: number;
@@ -22,9 +26,9 @@ export default class CustomWebSocket {
     this.ws.onmessage = this.onMessage.bind(this);
   }
 
-  close() {
+  close = () => {
     this.ws.close();
-  }
+  };
 
   /**
    * 메세지 이벤트 추가
@@ -32,24 +36,24 @@ export default class CustomWebSocket {
    * @param type
    * @param event
    */
-  addMessageEvent<T>(type: string, event: (message: T) => void) {
+  addMessageEvent = (type: string, event: (message: any) => void) => {
     if (!this.messageEvents.has(type)) {
-      this.messageEvents.set(type, []);
+      this.messageEvents.set(type.toLowerCase(), []);
     }
-    this.messageEvents.get(type)?.push(event);
-  }
+    this.messageEvents.get(type.toLowerCase())?.push(event);
+  };
 
-  setOnMessage(
+  setOnMessage = (
     handleMessage: (ev: any | MessageBase) => any,
-  ) {
+  ) => {
     this.handleMessage = handleMessage;
-  }
+  };
 
-  setOnSend(
+  setOnSend = (
     handleSend: (ev: any | MessageBase) => any,
-  ) {
+  ) => {
     this.handleSend = handleSend;
-  }
+  };
 
   /**
    * 메세지 전송
@@ -57,14 +61,15 @@ export default class CustomWebSocket {
    * @param type 타입
    * @param data 보낼 데이터
    */
-  public send(type: string, data: any) {
+  send = (type: string, data: any) => {
     data['type'] = type;
     const jsonData = JSON.stringify(data);
     this.handleSend?.call(this, data);
+    console.log(jsonData);
     this.ws.send(jsonData);
-  }
+  };
 
-  private onMessage(message: MessageEvent) {
+  onMessage = (message: MessageEvent) => {
     const data = typeof message.data === 'string' ? JSON.parse(message.data) : message.data;
 
     this.handleMessage?.call(this, data);
@@ -76,6 +81,6 @@ export default class CustomWebSocket {
     this.messageEvents.get(type.toLowerCase())?.forEach((event) => {
       event.call(this, data);
     });
-  }
+  };
 
 }

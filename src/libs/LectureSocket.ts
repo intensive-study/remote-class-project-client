@@ -1,4 +1,4 @@
-import CustomWebSocket, { MessageBase } from './CustomWebSocket';
+import CustomWebSocket, { MessageBase, ResponseBase } from './CustomWebSocket';
 
 type StartLive = MessageBase;
 
@@ -17,6 +17,25 @@ export type SdpAnswer = MessageBase
 
 export type ExitLive = MessageBase
 
+export interface ResponseLiveProceeding extends ResponseBase {
+  proceeding?: boolean;
+}
+
+export interface ResponseUserEntered extends ResponseBase {
+  userId: number;
+}
+
+export interface ResponseSDP extends ResponseBase {
+  userId: number;
+  sdp: RTCSessionDescriptionInit;
+}
+
+export interface ResponseIceCandidate extends ResponseBase {
+  userId: number;
+  candidate: RTCIceCandidate;
+}
+
+
 export default class LectureSocket extends CustomWebSocket {
 
   private readonly userId: number;
@@ -34,40 +53,55 @@ export default class LectureSocket extends CustomWebSocket {
     this.lectureId = lectureId;
   }
 
-  startLive() {
+  startLive = () => {
     this.send('startLive', {
       userId: this.userId,
       lectureId: this.lectureId,
     });
-  }
+  };
 
-  enterLive() {
+  isLiveProceeding = () => {
+    this.send('isLiveProceeding', {
+      userId: this.userId,
+      lectureId: this.lectureId,
+    });
+  };
+
+  enterWaitingRoom = () => {
+    this.send('enterWaitingRoom', {
+      userId: this.userId,
+      lectureId: this.lectureId,
+    });
+  };
+
+  enterLive = () => {
     this.send('enterLive', {
       userId: this.userId,
       lectureId: this.lectureId,
     });
-  }
+  };
 
-  sdpOffer(sdp: SDP) {
-    this.send('sdpOffer', {
+  sdp = (sdp: RTCSessionDescriptionInit) => {
+    this.send('sdp', {
       userId: this.userId,
       lectureId: this.lectureId,
       sdp: sdp,
     });
-  }
+  };
 
-  sdpAnswer(sdp: SDP) {
-    this.send('sdpAnswer', {
+  candidate = (candidate: RTCIceCandidate) => {
+    this.send('IceCandidate', {
       userId: this.userId,
       lectureId: this.lectureId,
-      sdp: sdp,
+      candidate: candidate,
     });
-  }
+  };
 
-  exitLive() {
+  exitLive = () => {
     this.send('exitLive', {
       userId: this.userId,
       lectureId: this.lectureId,
     });
-  }
+  };
+
 }
